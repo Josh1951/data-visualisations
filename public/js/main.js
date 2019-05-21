@@ -5,6 +5,8 @@ var width = 600 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
 
 var flag = true;
+
+var t = d3.transition().duration(750);
     
 var g = d3.select("#chart-area")
     .append("svg")
@@ -58,7 +60,7 @@ d3.json("data/revenues.json").then(function(data){
         update(data);
         flag = !flag
     },1000);
-    
+
     //run the first time
     update(data);
 })
@@ -70,21 +72,27 @@ function update(data){
     y.domain([0, d3.max(data, function(d) { return d[value] })]);
     // X Axis
     var xAxisCall = d3.axisBottom(x);
-    xAxisGroup.call(xAxisCall);
+    xAxisGroup.transition(t).call(xAxisCall);
 
     // Y Axis
     var yAxisCall = d3.axisLeft(y)
         .tickFormat(function(d){ return "$" + d; });
-    yAxisGroup.call(yAxisCall);
+    yAxisGroup.transition(t).call(yAxisCall);
 
     // JOIN NEW DATA WITH OLD ELEMENTS
     var rects = g.selectAll("rect")
         .data(data)
 
     //EXIT - OLD ELEMENTS NOT IN NEW DATA
-    rects.exit().remove();
+    rects.exit()
+        .attr("fill", "red")
+        .transition(t)
+        .attr("y", y(0))
+        .attr("height", 0)
+        .remove();
+
     //UPDATE - OLD ELEMENTS PRESENT IN NEW DATA
-    rects
+    rects.transition(t)
         .attr("y", function(d){ return y(d[value]); })
         .attr("x", function(d){ return x(d.month) })
         .attr("height", function(d){ return height - y(d[value]); })
@@ -93,11 +101,14 @@ function update(data){
     //ENETER - NEW ELEMENTS IN NEW DATA        
     rects.enter()
         .append("rect")
-            .attr("y", function(d){ return y(d[value]); })
+            .attr("height", 0)
+            .attr("y", y(0))
             .attr("x", function(d){ return x(d.month) })
-            .attr("height", function(d){ return height - y(d[value]); })
             .attr("width", x.bandwidth)
-            .attr("fill", "pink");
+            .attr("fill", "pink")
+                .transition(t)
+                    .attr("y", function(d){ return y(d[value]); })
+                    .attr("height", function(d){ return height - y(d[value]); })
 
     var label = flag ? "revenue" : "profit";
     yLabel.text(label);
