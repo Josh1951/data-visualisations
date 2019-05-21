@@ -55,9 +55,11 @@ d3.json("data/revenues.json").then(function(data){
         d.revenue = +d.revenue;
         d.profit = +d.profit;
     });
+
     //UPDATE
     d3.interval(function(){
-        update(data);
+        var newData = flag ? data : data.slice(1);
+        update(newData);
         flag = !flag
     },1000);
 
@@ -81,7 +83,9 @@ function update(data){
 
     // JOIN NEW DATA WITH OLD ELEMENTS
     var rects = g.selectAll("rect")
-        .data(data)
+        .data(data, function(d){
+            return d.month;
+        });
 
     //EXIT - OLD ELEMENTS NOT IN NEW DATA
     rects.exit()
@@ -101,14 +105,18 @@ function update(data){
     //ENETER - NEW ELEMENTS IN NEW DATA        
     rects.enter()
         .append("rect")
-            .attr("height", 0)
+            .attr("fill", "green")
             .attr("y", y(0))
+            .attr("height", 0)
             .attr("x", function(d){ return x(d.month) })
             .attr("width", x.bandwidth)
-            .attr("fill", "pink")
-                .transition(t)
-                    .attr("y", function(d){ return y(d[value]); })
-                    .attr("height", function(d){ return height - y(d[value]); })
+            // AND UPDATE old elements present in new data.
+            .merge(rects)
+            .transition(t)
+                .attr("x", function(d){ return x(d.month) })
+                .attr("width", x.bandwidth)
+                .attr("y", function(d){ return y(d[value]); })
+                .attr("height", function(d){ return height - y(d[value]); });
 
     var label = flag ? "revenue" : "profit";
     yLabel.text(label);
