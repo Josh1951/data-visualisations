@@ -46,13 +46,11 @@ g.append("text")
 
 //DATA
 d3.json("data/revenues.json").then(function(data){
-
     // CLEAN DATA
     data.forEach(function(d) {
         d.revenue = +d.revenue;
     });
-
-    //Update
+    //UPDATE
     d3.interval(function(){
         update(data);
     },1000);
@@ -73,15 +71,25 @@ function update(data){
         .tickFormat(function(d){ return "$" + d; });
     yAxisGroup.call(yAxisCall);
 
-    // DRAW BARS
-    // var rects = g.selectAll("rect")
-    //     .data(data)
-        
-    // rects.enter()
-    //     .append("rect")
-    //         .attr("y", function(d){ return y(d.revenue); })
-    //         .attr("x", function(d){ return x(d.month) })
-    //         .attr("height", function(d){ return height - y(d.revenue); })
-    //         .attr("width", x.bandwidth)
-    //         .attr("fill", "pink");
+    // JOIN NEW DATA WITH OLD ELEMENTS
+    var rects = g.selectAll("rect")
+        .data(data)
+
+    //EXIT - OLD ELEMENTS NOT IN NEW DATA
+    rects.exit().remove();
+    //UPDATE - OLD ELEMENTS PRESENT IN NEW DATA
+    rects
+        .attr("y", function(d){ return y(d.revenue); })
+        .attr("x", function(d){ return x(d.month) })
+        .attr("height", function(d){ return height - y(d.revenue); })
+        .attr("width", x.bandwidth);
+
+    //ENETER - NEW ELEMENTS IN NEW DATA        
+    rects.enter()
+        .append("rect")
+            .attr("y", function(d){ return y(d.revenue); })
+            .attr("x", function(d){ return x(d.month) })
+            .attr("height", function(d){ return height - y(d.revenue); })
+            .attr("width", x.bandwidth)
+            .attr("fill", "pink");
 }
