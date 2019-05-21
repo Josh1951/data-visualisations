@@ -11,6 +11,13 @@ var g = d3.select("#chart-area")
     .append("g")
         .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
+var xAxisGroup = g.append("g")
+        .attr("class", "x axis")
+        .attr("transform", "translate(0," + height +")")
+
+var yAxisGroup = g.append("g")
+        .attr("class", "y axis")
+
 // X Scale
     var x = d3.scaleBand()
         .range([0, width])
@@ -49,6 +56,9 @@ d3.json("data/revenues.json").then(function(data){
     d3.interval(function(){
         update(data);
     },1000);
+
+    //run the first time
+    update(data);
 })
 
 function update(data){
@@ -56,27 +66,22 @@ function update(data){
     y.domain([0, d3.max(data, function(d) { return d.revenue })]);
     // X Axis
     var xAxisCall = d3.axisBottom(x);
-    g.append("g")
-        .attr("class", "x axis")
-        .attr("transform", "translate(0," + height +")")
-        .call(xAxisCall);
+    xAxisGroup.call(xAxisCall);
 
     // Y Axis
     var yAxisCall = d3.axisLeft(y)
         .tickFormat(function(d){ return "$" + d; });
-    g.append("g")
-        .attr("class", "y axis")
-        .call(yAxisCall);
+    yAxisGroup.call(yAxisCall);
 
     // DRAW BARS
-    var rects = g.selectAll("rect")
-        .data(data)
+    // var rects = g.selectAll("rect")
+    //     .data(data)
         
-    rects.enter()
-        .append("rect")
-            .attr("y", function(d){ return y(d.revenue); })
-            .attr("x", function(d){ return x(d.month) })
-            .attr("height", function(d){ return height - y(d.revenue); })
-            .attr("width", x.bandwidth)
-            .attr("fill", "pink");
+    // rects.enter()
+    //     .append("rect")
+    //         .attr("y", function(d){ return y(d.revenue); })
+    //         .attr("x", function(d){ return x(d.month) })
+    //         .attr("height", function(d){ return height - y(d.revenue); })
+    //         .attr("width", x.bandwidth)
+    //         .attr("fill", "pink");
 }
