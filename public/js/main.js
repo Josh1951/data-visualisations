@@ -3,6 +3,8 @@ var margin = { left:80, right:20, top:50, bottom:100 };
 
 var width = 600 - margin.left - margin.right,
     height = 400 - margin.top - margin.bottom;
+
+var flag = true;
     
 var g = d3.select("#chart-area")
     .append("svg")
@@ -19,13 +21,13 @@ var yAxisGroup = g.append("g")
         .attr("class", "y axis")
 
 // X Scale
-    var x = d3.scaleBand()
-        .range([0, width])
-        .padding(0.2);
+var x = d3.scaleBand()
+    .range([0, width])
+    .padding(0.2);
 
-    // Y Scale
-    var y = d3.scaleLinear()
-        .range([height, 0]);
+// Y Scale
+var y = d3.scaleLinear()
+    .range([height, 0]);
 
 // X Label
 g.append("text")
@@ -36,7 +38,7 @@ g.append("text")
     .text("Month");
 
 // Y Label
-g.append("text")
+var yLabel = g.append("text")
     .attr("y", -60)
     .attr("x", -(height / 2))
     .attr("font-size", "20px")
@@ -49,19 +51,23 @@ d3.json("data/revenues.json").then(function(data){
     // CLEAN DATA
     data.forEach(function(d) {
         d.revenue = +d.revenue;
+        d.profit = +d.profit;
     });
     //UPDATE
     d3.interval(function(){
         update(data);
+        flag = !flag
     },1000);
-
+    
     //run the first time
     update(data);
 })
 
 function update(data){
+    var value = flag ? "revenue" : "profit";
+
     x.domain(data.map(function(d){ return d.month }));
-    y.domain([0, d3.max(data, function(d) { return d.revenue })]);
+    y.domain([0, d3.max(data, function(d) { return d[value] })]);
     // X Axis
     var xAxisCall = d3.axisBottom(x);
     xAxisGroup.call(xAxisCall);
@@ -79,17 +85,20 @@ function update(data){
     rects.exit().remove();
     //UPDATE - OLD ELEMENTS PRESENT IN NEW DATA
     rects
-        .attr("y", function(d){ return y(d.revenue); })
+        .attr("y", function(d){ return y(d[value]); })
         .attr("x", function(d){ return x(d.month) })
-        .attr("height", function(d){ return height - y(d.revenue); })
+        .attr("height", function(d){ return height - y(d[value]); })
         .attr("width", x.bandwidth);
 
     //ENETER - NEW ELEMENTS IN NEW DATA        
     rects.enter()
         .append("rect")
-            .attr("y", function(d){ return y(d.revenue); })
+            .attr("y", function(d){ return y(d[value]); })
             .attr("x", function(d){ return x(d.month) })
-            .attr("height", function(d){ return height - y(d.revenue); })
+            .attr("height", function(d){ return height - y(d[value]); })
             .attr("width", x.bandwidth)
             .attr("fill", "pink");
+
+    var label = flag ? "revenue" : "profit";
+    yLabel.text(label);
 }
